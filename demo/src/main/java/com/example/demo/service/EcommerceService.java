@@ -31,20 +31,14 @@ public class EcommerceService {
 
     public EcommerceDto addProduct(EcommerceDto ecommerceDto){
         Ecommerce ecommerce = ecommerceMapper.dtoToEntity(ecommerceDto);
-        Ecommerce savedEcommerce = ecommerceRepo.save(ecommerce);
-        return ecommerceMapper.entityToDto(savedEcommerce);
+        ecommerceRepo.save(ecommerce);
+        return ecommerceDto;
     }
 
-//    public EcommerceDto updateProduct(int id){
-//        Ecommerce existingEcommerce = ecommerceRepo.findById(id).orElse(null);
-//        existingEcommerce.setName("Bread");
-//        existingEcommerce.setBrand("Premium");
-//        existingEcommerce.setQuantityAvailable(3);
-//        Ecommerce updatedEcommerce = ecommerceRepo.save(existingEcommerce);
-//        return ecommerceMapper.entityToDto(updatedEcommerce);
-//    }
-
     public void deleteProduct(int id){
+        if (!ecommerceRepo.existsById(id)){
+            throw new ProductNotFoundException();
+        }
         ecommerceRepo.deleteById(id);
     }
 

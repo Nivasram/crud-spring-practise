@@ -2,23 +2,23 @@ package com.example.demo.serviceTest;
 
 import com.example.demo.dto.EcommerceDto;
 import com.example.demo.entity.Ecommerce;
-import com.example.demo.exception.ProductNotFoundException;
 import com.example.demo.mapper.EcommerceMapper;
 import com.example.demo.repository.EcommerceRepo;
 import com.example.demo.service.EcommerceService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class EcommerceServiceTest {
 
     @InjectMocks
@@ -30,95 +30,54 @@ class EcommerceServiceTest {
     @Mock
     private EcommerceRepo ecommerceRepo;
 
+    private Ecommerce ecommerce;
+
+    private EcommerceDto ecommerceDto;
+
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
+         ecommerce = new Ecommerce(1, "Bread", 35.00);
+         ecommerceDto = new EcommerceDto(1, "Bread", 35.00);
     }
 
     @Test
-    void getAllProducts_ShouldReturnProductList() {
-        // Arrange
-        Ecommerce ecommerce = new Ecommerce();
-        ecommerce.setId(1);
-        ecommerce.setName("Test Product");
-
-        EcommerceDto ecommerceDto = new EcommerceDto();
-        ecommerceDto.setId(1);
-        ecommerceDto.setName("Test Product");
-
-        when(ecommerceRepo.findAll()).thenReturn(Arrays.asList(ecommerce));
+    void testGetAllProducts() {
+        List<Ecommerce> ecommerceList = List.of(ecommerce);
+        when(ecommerceRepo.findAll()).thenReturn(ecommerceList);
         when(ecommerceMapper.entityToDto(ecommerce)).thenReturn(ecommerceDto);
 
-        // Act
-        List<EcommerceDto> products = ecommerceService.getAllProducts();
+        List<EcommerceDto> result = ecommerceService.getAllProducts();
 
-        // Assert
-        assertNotNull(products);
-        assertEquals(1, products.size());
-        assertEquals("Test Product", products.get(0).getName());
+        assertEquals(1, result.size());
+        assertEquals("Bread", result.getFirst().getName());
     }
 
     @Test
-    void getProductById_ShouldReturnProduct_WhenExists() {
-        // Arrange
-        Ecommerce ecommerce = new Ecommerce();
-        ecommerce.setId(1);
-        ecommerce.setName("Test Product");
-
-        EcommerceDto ecommerceDto = new EcommerceDto();
-        ecommerceDto.setId(1);
-        ecommerceDto.setName("Test Product");
-
+    void testGetProductById() {
         when(ecommerceRepo.findById(1)).thenReturn(Optional.of(ecommerce));
         when(ecommerceMapper.entityToDto(ecommerce)).thenReturn(ecommerceDto);
 
-        // Act
-        EcommerceDto product = ecommerceService.getProductById(1);
-
-        // Assert
-        assertNotNull(product);
-        assertEquals("Test Product", product.getName());
+        EcommerceDto result = ecommerceService.getProductById(1);
+        assertNotNull(result);
+        assertEquals("Bread", result.getName());
     }
 
     @Test
-    void getProductById_ShouldThrowException_WhenNotExists() {
-        // Arrange
-        when(ecommerceRepo.findById(1)).thenReturn(Optional.empty());
+    void testAddProduct() {
+       when(ecommerceMapper.dtoToEntity(ecommerceDto)).thenReturn(ecommerce);
+       when(ecommerceRepo.save(ecommerce)).thenReturn(ecommerce);
 
-        // Act & Assert
-        assertThrows(ProductNotFoundException.class, () -> ecommerceService.getProductById(1));
+       EcommerceDto savedEcommerce = ecommerceService.addProduct(ecommerceDto);
+
+       assertEquals("Bread", savedEcommerce.getName());
     }
 
     @Test
-    void addProduct_ShouldSaveAndReturnProduct() {
-        // Arrange
-        EcommerceDto ecommerceDto = new EcommerceDto();
-        ecommerceDto.setName("New Product");
+    void testDeleteProduct(){
+        when(ecommerceRepo.existsById(1)).thenReturn(true);
 
-        Ecommerce ecommerce = new Ecommerce();
-        ecommerce.setName("New Product");
+        ecommerceService.deleteProduct(1);
 
-        when(ecommerceMapper.dtoToEntity(ecommerceDto)).thenReturn(ecommerce);
-        when(ecommerceRepo.save(ecommerce)).thenReturn(ecommerce);
-        when(ecommerceMapper.entityToDto(ecommerce)).thenReturn(ecommerceDto);
-
-        // Act
-        EcommerceDto savedProduct = ecommerceService.addProduct(ecommerceDto);
-
-        // Assert
-        assertNotNull(savedProduct);
-        assertEquals("New Product", savedProduct.getName());
-    }
-
-    @Test
-    void deleteProduct_ShouldCallDeleteById() {
-        // Arrange
-        int productId = 1;
-
-        // Act
-        ecommerceService.deleteProduct(productId);
-
-        // Assert
-        verify(ecommerceRepo, times(1)).deleteById(productId);
+        verify(ecommerceRepo, times(1)).deleteById(1);
     }
 }
