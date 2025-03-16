@@ -1,11 +1,13 @@
 package com.example.demo.repoTest;
 
 import com.example.demo.entity.Ecommerce;
+import com.example.demo.exception.ProductNotFoundException;
 import com.example.demo.repository.EcommerceRepo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -18,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(SpringExtension.class)
 public class EcommerceRepositoryTest {
 
-    @Mock
+    @Autowired
     private EcommerceRepo ecommerceRepo;
 
     private Ecommerce ecommerce;
@@ -35,6 +37,7 @@ public class EcommerceRepositoryTest {
     void testGetAllProduct() {
         List<Ecommerce> ecommerceList = ecommerceRepo.findAll();
 
+        assertFalse(ecommerceList.isEmpty());
         assertEquals("Bread", ecommerce.getName());
         assertEquals(35.00, ecommerce.getPrice());
     }
@@ -43,36 +46,30 @@ public class EcommerceRepositoryTest {
     void testGetProductById() {
         Optional<Ecommerce> foundEcommerce = ecommerceRepo.findById(ecommerce.getId());
 
-        assertTrue(foundEcommerce.isPresent());
-        assertEquals(ecommerce.getPrice(), foundEcommerce.get().getPrice());
-    }
-
-    @Test
-    void TestDeleteProduct() {
-        // Arrange
-        List<Ecommerce> products = ecommerceRepo.findAll();
-        int productId = products.getFirst().getId();
-
-        // Act
-        ecommerceRepo.deleteById(productId);
-        Optional<Ecommerce> deletedProduct = ecommerceRepo.findById(productId);
-
-        // Assert
-        assertFalse(deletedProduct.isPresent());
+        assertEquals("Bread",
+                foundEcommerce.get().getName());
     }
 
     @Test
     void testAddProduct() {
-        // Arrange
-        Ecommerce ecommerce = new Ecommerce();
-        ecommerce.setName("Bread");
+        Ecommerce newEcommerce = new Ecommerce();
+        newEcommerce.setName("Bread");
 
-        // Act
-        Ecommerce savedEcommerce = ecommerceRepo.save(ecommerce);
+        Ecommerce savedEcommerce = ecommerceRepo.save(newEcommerce);
 
-        // Assert
         assertNotNull(savedEcommerce);
         assertEquals("Bread", savedEcommerce.getName());
     }
+
+    @Test
+    void TestDeleteProduct() {
+      ecommerceRepo.deleteById(ecommerce.getId());
+
+      Optional<Ecommerce> deleteProduct = ecommerceRepo.findById(ecommerce.getId());
+
+      assertFalse(deleteProduct.isPresent());
+    }
+
+
 }
 
