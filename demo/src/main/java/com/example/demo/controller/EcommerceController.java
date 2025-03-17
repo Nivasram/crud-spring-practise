@@ -28,11 +28,6 @@ public class EcommerceController {
         return ecommerceService.addProduct(ecommerceDto);
     }
 
-//    @PutMapping("/{id}")
-//    public EcommerceDto updateProduct(@PathVariable int id){
-//        return ecommerceService.updateProduct(id);
-//    }
-
     @DeleteMapping("/{id}")
     public void deleteProduct(@PathVariable int id){
         ecommerceService.deleteProduct(id);
